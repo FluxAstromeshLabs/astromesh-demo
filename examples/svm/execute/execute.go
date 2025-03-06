@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -15,11 +14,8 @@ import (
 	chaintypes "github.com/FluxNFTLabs/sdk-go/chain/types"
 	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 	"github.com/FluxNFTLabs/sdk-go/client/common"
-	"github.com/FluxNFTLabs/sdk-go/client/svm"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ethsecp256k1"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/gagliardetto/solana-go"
 	"github.com/mr-tron/base58"
 	"google.golang.org/grpc"
@@ -89,15 +85,9 @@ func main() {
 
 	txBuilder := solana.NewTransactionBuilder()
 
-	// Generate a new account for the counter
-	counterPrivKey := ed25519.GenPrivKeyFromSecret([]byte("counter"))
-	counterPubkey := solana.PublicKeyFromBytes(counterPrivKey.PubKey().Bytes())
-
-	cosmosPrivateKeys := []*ethsecp256k1.PrivKey{
-		{Key: ethcommon.Hex2Bytes("88cbead91aee890d27bf06e003ade3d4e952427e88f88d31d61d3ef5e5d54306")},
-	}
-
-	counterPubkey, _, err = svm.GetOrLinkSvmAccount(chainClient, clientCtx, cosmosPrivateKeys[0], counterPrivKey, 0)
+	counterPubkey, _, err := solana.FindProgramAddress([][]byte{
+		[]byte("counter"),
+	}, programId)
 	if err != nil {
 		panic(err)
 	}
@@ -119,35 +109,19 @@ func main() {
 		fmt.Println("sender is already linked to svm address:", feePayerPubkey.String())
 	}
 
-	// Convert amount to bytes
-	amountBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(amountBytes, 5)
+	// Anchor discriminators (first 8 bytes of sha256 hash of "global:count")
+	countDiscriminator := []byte{214, 3, 93, 57, 210, 192, 181, 206} // "global:count"
 
-	// Anchor discriminators (first 8 bytes of sha256 hash of the instruction name)
-	initializeDiscriminator := []byte{175, 175, 109, 31, 13, 152, 155, 237} // "initialize"
-	incrementDiscriminator := []byte{127, 205, 142, 147, 115, 108, 45, 143} // "increment"
-
-	txBuilder.AddInstruction(
-		solana.NewInstruction(
-			programPubkey,
-			[]*solana.AccountMeta{
-				{PublicKey: counterPubkey, IsSigner: true, IsWritable: true},
-				{PublicKey: feePayerPubkey, IsSigner: true, IsWritable: true},
-				{PublicKey: solana.SystemProgramID, IsSigner: false, IsWritable: false},
-			},
-			initializeDiscriminator,
-		),
-	)
-
-	// add the increment instruction
+	// add the count instruction
 	txBuilder.AddInstruction(
 		solana.NewInstruction(
 			programPubkey,
 			[]*solana.AccountMeta{
 				{PublicKey: counterPubkey, IsSigner: false, IsWritable: true},
+				{PublicKey: feePayerPubkey, IsSigner: true, IsWritable: true}, // This is the signer account
 				{PublicKey: solana.SystemProgramID, IsSigner: false, IsWritable: false},
 			},
-			append(incrementDiscriminator, amountBytes...),
+			countDiscriminator,
 		),
 	)
 
