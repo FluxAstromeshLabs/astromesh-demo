@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("8WUdR5tASHds97cuvHfB28B76FJEtPtMWDemAmfhwVT7");
+declare_id!("Ahagc1jHrCPkjfA2EnTbJeo1Lix5xnppbSmGkTiBbukd");
 
 #[program]
 mod counter {
@@ -12,9 +12,9 @@ mod counter {
         Ok(())
     }
 
-    pub fn increment(ctx: Context<Update>, amount: u64) -> Result<()> {
+    pub fn increment(ctx: Context<Update>) -> Result<()> {
         let counter = &mut ctx.accounts.counter;
-        counter.value += amount;
+        counter.value += 1;
         Ok(())
     }
 

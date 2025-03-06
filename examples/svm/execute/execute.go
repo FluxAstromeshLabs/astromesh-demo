@@ -15,9 +15,13 @@ import (
 	chaintypes "github.com/FluxNFTLabs/sdk-go/chain/types"
 	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 	"github.com/FluxNFTLabs/sdk-go/client/common"
+	"github.com/FluxNFTLabs/sdk-go/client/svm"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ethsecp256k1"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/gagliardetto/solana-go"
+	"github.com/mr-tron/base58"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -48,7 +52,7 @@ func main() {
 	// init client ctx
 	clientCtx, senderAddress, err := chaintypes.NewClientContext(
 		network.ChainId,
-		"user1",
+		"user2",
 		kr,
 	)
 	if err != nil {
@@ -85,30 +89,57 @@ func main() {
 
 	txBuilder := solana.NewTransactionBuilder()
 
+	// Generate a new account for the counter
 	counterPrivKey := ed25519.GenPrivKeyFromSecret([]byte("counter"))
 	counterPubkey := solana.PublicKeyFromBytes(counterPrivKey.PubKey().Bytes())
 
-	// Check and link counter account
-	isSvmLinked, counterSvmPubkey, err := chainClient.GetSVMAccountLink(context.Background(), senderAddress)
+	cosmosPrivateKeys := []*ethsecp256k1.PrivKey{
+		{Key: ethcommon.Hex2Bytes("88cbead91aee890d27bf06e003ade3d4e952427e88f88d31d61d3ef5e5d54306")},
+	}
+
+	counterPubkey, _, err = svm.GetOrLinkSvmAccount(chainClient, clientCtx, cosmosPrivateKeys[0], counterPrivKey, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	// Check and link fee payer account (using sender's linked SVM account)
+	isSvmLinked, feePayerPubkey, err := chainClient.GetSVMAccountLink(context.Background(), senderAddress)
 	if err != nil {
 		panic(err)
 	}
 	if !isSvmLinked {
-		res, err := chainClient.LinkSVMAccount(counterPrivKey, math.NewInt(0))
+		feePayerPrivKey := ed25519.GenPrivKey() // Good practice: Backup this private key
+		res, err := chainClient.LinkSVMAccount(feePayerPrivKey, math.NewIntFromUint64(1_000_000_000_000_000))
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("linked counter to svm address: %s, txHash: %s\n", counterPubkey.String(), res.TxResponse.TxHash)
-		counterPubkey = solana.PublicKeyFromBytes(counterPrivKey.PubKey().Bytes())
+		fmt.Println("linked sender to svm address:", base58.Encode(feePayerPrivKey.PubKey().Bytes()), "txHash:", res.TxResponse.TxHash)
+		feePayerPubkey = solana.PublicKey(feePayerPrivKey.PubKey().Bytes())
 	} else {
-		fmt.Printf("counter %s is already linked to svm address: %s\n", senderAddress.String(), counterSvmPubkey.String())
-		counterPubkey = counterSvmPubkey
+		fmt.Println("sender is already linked to svm address:", feePayerPubkey.String())
 	}
 
 	// Convert amount to bytes
 	amountBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(amountBytes, 5)
 
+	// Anchor discriminators (first 8 bytes of sha256 hash of the instruction name)
+	initializeDiscriminator := []byte{175, 175, 109, 31, 13, 152, 155, 237} // "initialize"
+	incrementDiscriminator := []byte{127, 205, 142, 147, 115, 108, 45, 143} // "increment"
+
+	txBuilder.AddInstruction(
+		solana.NewInstruction(
+			programPubkey,
+			[]*solana.AccountMeta{
+				{PublicKey: counterPubkey, IsSigner: true, IsWritable: true},
+				{PublicKey: feePayerPubkey, IsSigner: true, IsWritable: true},
+				{PublicKey: solana.SystemProgramID, IsSigner: false, IsWritable: false},
+			},
+			initializeDiscriminator,
+		),
+	)
+
+	// add the increment instruction
 	txBuilder.AddInstruction(
 		solana.NewInstruction(
 			programPubkey,
@@ -116,24 +147,14 @@ func main() {
 				{PublicKey: counterPubkey, IsSigner: false, IsWritable: true},
 				{PublicKey: solana.SystemProgramID, IsSigner: false, IsWritable: false},
 			},
-			append([]byte{1}, amountBytes...),
+			append(incrementDiscriminator, amountBytes...),
 		),
 	)
 
-	tx, err := txBuilder.Build()
+	tx, err := txBuilder.SetFeePayer(feePayerPubkey).Build()
 	if err != nil {
 		panic(err)
 	}
-
-	// Convert ed25519 private keys to Solana format for signing
-	counterSolanaKey := solana.PrivateKey(counterPrivKey.Bytes())
-
-	tx.Sign(func(key solana.PublicKey) *solana.PrivateKey {
-		if key.Equals(counterPubkey) {
-			return &counterSolanaKey
-		}
-		return nil
-	})
 
 	svmMsg := svmtypes.ToCosmosMsg([]string{senderAddress.String()}, 1000_000, tx)
 	res, err := chainClient.SyncBroadcastMsg(svmMsg)

@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
 
@@ -81,7 +80,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	callData, err := abi.Pack("add", big.NewInt(3))
+	callData, err := abi.Pack("count")
 	if err != nil {
 		panic(err)
 	}
