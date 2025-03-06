@@ -4,12 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 
 	evmtypes "github.com/FluxNFTLabs/sdk-go/chain/modules/evm/types"
 	chaintypes "github.com/FluxNFTLabs/sdk-go/chain/types"
@@ -86,7 +84,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	callData, err := abi.Pack("", ethcommon.Address(ethcommon.Hex2Bytes("0000000000000000000000000000000000000011")[:]), big.NewInt(3), big.NewInt(4))
+	callData, err := abi.Pack("")
 	if err != nil {
 		panic(err)
 	}

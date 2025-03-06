@@ -58,7 +58,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	bz, err := os.ReadFile(dir + "/examples/chain/16_MsgDeployEVMContract/compData.json")
+	bz, err := os.ReadFile(dir + "/examples/evm/build/compData.json")
 	if err != nil {
 		panic(err)
 	}
