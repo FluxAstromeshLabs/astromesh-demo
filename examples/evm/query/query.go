@@ -79,7 +79,7 @@ func main() {
 		panic(err)
 	}
 
-	contractAddress, _ := hex.DecodeString("6d5439db70cf4564b37bfeb54b2be4f38c4922ea")
+	contractAddress, _ := hex.DecodeString("d2c305699bcda7e79ac26d100b820503f7b15d44")
 
 	// prepare tx msg
 	msg := &evmtypes.ContractQueryRequest{
@@ -91,5 +91,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("result:", txResp)
+	// Print the last byte which contains our counter value
+	if len(txResp.Output) > 0 {
+		value := txResp.Output[len(txResp.Output)-1]
+		fmt.Printf("Counter value: %d\n", value)
+	}
 }

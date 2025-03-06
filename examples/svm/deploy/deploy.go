@@ -67,7 +67,6 @@ func main() {
 		panic(err)
 	}
 
-	// load artifacts
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
