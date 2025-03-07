@@ -4,4 +4,4 @@
 
 rm -rf ~/.fluxd
 cp -r ./chain/.fluxd ~/.fluxd
-fluxd start
+DYLD_LIBRARY_PATH=/usr/local/lib fluxd start
