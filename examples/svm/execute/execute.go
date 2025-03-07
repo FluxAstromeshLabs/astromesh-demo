@@ -108,8 +108,8 @@ func main() {
 		fmt.Println("sender is already linked to svm address:", feePayerPubkey.String())
 	}
 
-	// Anchor discriminators (first 8 bytes of sha256 hash of "global:count")
-	countDiscriminator := []byte{214, 3, 93, 57, 210, 192, 181, 206} // "global:count"
+	// Anchor discriminators
+	countDiscriminator := []byte{214, 3, 93, 57, 210, 192, 181, 206}
 
 	// add the count instruction
 	txBuilder.AddInstruction(
