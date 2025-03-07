@@ -101,8 +101,4 @@ func main() {
 	}
 	fmt.Println("txHash:", txResp.TxResponse.TxHash)
 	fmt.Println("gas used/want:", txResp.TxResponse.GasUsed, "/", txResp.TxResponse.GasWanted)
-
-	// to double check locally:
-	// http://localhost:10337/flux/evm/v1beta1/query/{address}/{calldata}
-	// http://localhost:10337/flux/evm/v1beta1/query/a7f16731951d943768cf2053485b69ef61fef8be/aT7IXgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVvd25lcgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
 }

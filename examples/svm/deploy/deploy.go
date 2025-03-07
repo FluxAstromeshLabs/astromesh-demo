@@ -24,8 +24,8 @@ import (
 )
 
 var (
-	contractBinary  []byte
-	contractPrivKey []byte
+	programBinary     []byte
+	programPrivateKey []byte
 )
 
 func main() {
@@ -72,12 +72,12 @@ func main() {
 		panic(err)
 	}
 
-	contractBinary, err = os.ReadFile(dir + "/examples/svm/build/counter-contract.so")
+	programBinary, err = os.ReadFile(dir + "/examples/svm/build/counter-contract.so")
 	if err != nil {
 		panic(err)
 	}
 
-	contractPrivKey, err = os.ReadFile(dir + "/examples/svm/build/counter-contract-keypair.json")
+	programPrivateKey, err = os.ReadFile(dir + "/examples/svm/build/counter-contract-keypair.json")
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +111,7 @@ func main() {
 	ownerPubkey := solana.PublicKeyFromBytes(ownerSvmPrivKey.PubKey().Bytes())
 
 	var programSvmPrivKeyBz []byte
-	if err := json.Unmarshal(contractPrivKey, &programSvmPrivKeyBz); err != nil {
+	if err := json.Unmarshal(programPrivateKey, &programSvmPrivKeyBz); err != nil {
 		panic(err)
 	}
 
@@ -137,7 +137,7 @@ func main() {
 
 	initAccountMsg := svm.CreateInitAccountsMsg(
 		cosmosAddrs,
-		len(contractBinary),
+		len(programBinary),
 		ownerPubkey,
 		programPubkey,
 		programBufferPubkey,
@@ -148,7 +148,7 @@ func main() {
 		ownerPubkey,
 		programPubkey,
 		programBufferPubkey,
-		contractBinary,
+		programBinary,
 	)
 	if err != nil {
 		panic(err)

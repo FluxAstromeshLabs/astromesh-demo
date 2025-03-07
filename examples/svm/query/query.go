@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -89,14 +89,11 @@ func main() {
 
 	accountInfo, err := chainClient.GetSvmAccount(context.Background(), counterPubkey.String())
 	if err != nil {
-		log.Fatalf("Failed to fetch PDA account: %v", err)
+		panic(err)
 	}
 
 	if len(accountInfo.Account.Data) >= 16 {
-		counterValue := uint64(0)
-		for i := 0; i < 8; i++ {
-			counterValue |= uint64(accountInfo.Account.Data[8+i]) << (i * 8)
-		}
+		counterValue := binary.LittleEndian.Uint64(accountInfo.Account.Data[8:16])
 		fmt.Printf("Counter value: %d\n", counterValue)
 	}
 }
