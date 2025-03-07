@@ -20,13 +20,15 @@ Option 2: Don't have Docker? Install dependencies and run the binary directly:
 
 ## Run examples
 
-After bringing up the chain, you're ready to run the examples.
+After bringing up the chain, install golang here as examples are written in go
+
+https://go.dev/doc/install
+
+Now you're ready to run the examples.
 
 This repo contains `counter` contract/program as examples, which supports:
 - A `count()` that increases the `counter` by one (counter += 1)
 - A `get()` (EVM) that returns the current counter's value
-
-Client scripts are written in golang
 
 ### EVM
 
