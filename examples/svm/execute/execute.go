@@ -48,7 +48,7 @@ func main() {
 	// init client ctx
 	clientCtx, senderAddress, err := chaintypes.NewClientContext(
 		network.ChainId,
-		"user2",
+		"user1",
 		kr,
 	)
 	if err != nil {
@@ -72,7 +72,6 @@ func main() {
 	}
 	privKey := &ed25519.PrivKey{Key: privKeyBz}
 	programId := solana.PublicKeyFromBytes(privKey.PubKey().Bytes())
-	programPubkey := programId
 
 	// init chain client
 	chainClient, err := chainclient.NewChainClient(
@@ -115,10 +114,10 @@ func main() {
 	// add the count instruction
 	txBuilder.AddInstruction(
 		solana.NewInstruction(
-			programPubkey,
+			programId,
 			[]*solana.AccountMeta{
 				{PublicKey: counterPubkey, IsSigner: false, IsWritable: true},
-				{PublicKey: feePayerPubkey, IsSigner: true, IsWritable: true}, // This is the signer account
+				{PublicKey: feePayerPubkey, IsSigner: true, IsWritable: true},
 				{PublicKey: solana.SystemProgramID, IsSigner: false, IsWritable: false},
 			},
 			countDiscriminator,
