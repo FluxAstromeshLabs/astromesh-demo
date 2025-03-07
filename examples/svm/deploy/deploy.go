@@ -154,7 +154,6 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("=== intialize accounts for uploading programs ===")
 	signedTx, err := svm.BuildSignedTx(chainClient, []sdk.Msg{initAccountMsg}, cosmosPrivateKeys)
 	if err != nil {
 		panic(err)
@@ -172,10 +171,7 @@ func main() {
 	fmt.Println("tx hash:", res.TxResponse.TxHash)
 	fmt.Println("gas used/want:", res.TxResponse.GasUsed, "/", res.TxResponse.GasWanted)
 
-	fmt.Println("=== start uploading program ===")
-	fmt.Println("total txs required:", len(uploadMsgs))
-	for i, uploadMsg := range uploadMsgs {
-		fmt.Printf("uploading program part %dth\n", i+1)
+	for _, uploadMsg := range uploadMsgs {
 		signedTx, err = svm.BuildSignedTx(chainClient, []sdk.Msg{uploadMsg}, cosmosPrivateKeys)
 		if err != nil {
 			panic(err)
@@ -197,5 +193,5 @@ func main() {
 			fmt.Println("err code:", res.TxResponse.Code, ", log:", res.TxResponse.RawLog)
 		}
 	}
-	fmt.Println("✅ program deployed. program pubkey:", programPubkey.String())
+	fmt.Println("program pubkey:", programPubkey.String())
 }
