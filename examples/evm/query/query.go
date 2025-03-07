@@ -79,6 +79,7 @@ func main() {
 		panic(err)
 	}
 
+	// copy contract address from deploy example
 	contractAddress, _ := hex.DecodeString("d2c305699bcda7e79ac26d100b820503f7b15d44")
 
 	// prepare tx msg
