@@ -108,10 +108,10 @@ func main() {
 		fmt.Println("sender is already linked to svm address:", feePayerPubkey.String())
 	}
 
-	// Anchor discriminators
+	// count() function's discriminators
 	countDiscriminator := []byte{214, 3, 93, 57, 210, 192, 181, 206}
 
-	// add the count instruction
+	// construct the count instruction
 	txBuilder.AddInstruction(
 		solana.NewInstruction(
 			programId,
@@ -129,6 +129,7 @@ func main() {
 		panic(err)
 	}
 
+	// convert the instruction to cosmos msg, then broadcast it
 	svmMsg := svmtypes.ToCosmosMsg([]string{senderAddress.String()}, 1000_000, tx)
 	res, err := chainClient.SyncBroadcastMsg(svmMsg)
 	if err != nil {

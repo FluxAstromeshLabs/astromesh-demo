@@ -80,6 +80,7 @@ func main() {
 		panic(err)
 	}
 
+	// calculate the "counter" account to query
 	counterPubkey, _, err := solana.FindProgramAddress([][]byte{
 		[]byte("counter"),
 	}, programId)

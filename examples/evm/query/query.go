@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"os"
 	"strings"
 
@@ -74,15 +75,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// copy contract address from deploy example
+	contractAddress, _ := hex.DecodeString("d2c305699bcda7e79ac26d100b820503f7b15d44")
+
+	// prepare query message, use method get()
 	callData, err := abi.Pack("get")
 	if err != nil {
 		panic(err)
 	}
 
-	// copy contract address from deploy example
-	contractAddress, _ := hex.DecodeString("d2c305699bcda7e79ac26d100b820503f7b15d44")
-
-	// prepare tx msg
 	msg := &evmtypes.ContractQueryRequest{
 		Address:  hex.EncodeToString(contractAddress),
 		Calldata: callData,
@@ -92,9 +94,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	// Print the last byte which contains our counter value
-	if len(txResp.Output) > 0 {
-		value := txResp.Output[len(txResp.Output)-1]
-		fmt.Printf("Counter value: %d\n", value)
-	}
+	fmt.Println("Counter value:", new(big.Int).SetBytes(txResp.Output).String())
 }

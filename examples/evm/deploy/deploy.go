@@ -89,7 +89,7 @@ func main() {
 		panic(err)
 	}
 
-	// prepare tx msg
+	// prepare deploy msg
 	msg := &evmtypes.MsgDeployContract{
 		Sender:   senderAddress.String(),
 		Bytecode: bytecode,
@@ -117,5 +117,5 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("contract owner:", senderAddress.String())
-	fmt.Println("flux processor contract address:", hex.EncodeToString(dcr.ContractAddress))
+	fmt.Println("contract address:", hex.EncodeToString(dcr.ContractAddress))
 }
