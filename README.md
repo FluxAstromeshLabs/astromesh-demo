@@ -15,7 +15,14 @@ Option 1: Use Docker
 Option 2: Don't have Docker? Install dependencies and run the binary directly:
 
 ```
-./start.sh
+# install vm libs & fluxd binary
+./install.sh
+
+# v0.3.1
+fluxd version
+
+# start the chain
+fluxd start
 ```
 
 ## Run examples
@@ -55,7 +62,7 @@ yes 12345678 | go run examples/evm/query/query.go
 Deploy program
 
 ```
-yes 12345678 | go run examples/svm/deploy/deploy.go 
+yes 12345678 | go run examples/svm/deploy/deploy.go
 ```
 
 Execute program to increase the value of **counter** account
