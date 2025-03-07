@@ -19,5 +19,5 @@ if [ ! -f "${BIN_PATH}/fluxd" ] ; then
     mkdir -p ./chain/binary
     curl -L "https://github.com/FluxAstromeshLabs/astromesh-demo/releases/download/v0.1/fluxd.${ARCH}" -o ./chain/binary/fluxd
     chmod +x ./chain/binary/fluxd
-    sudo cp ./chain/binary/$ARCH/fluxd $BIN_PATH
+    sudo cp ./chain/binary/fluxd $BIN_PATH
 fi
