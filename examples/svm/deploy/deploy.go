@@ -8,6 +8,8 @@ import (
 
 	_ "embed"
 
+	"cosmossdk.io/math"
+	astromeshtypes "github.com/FluxNFTLabs/sdk-go/chain/modules/astromesh/types"
 	chaintypes "github.com/FluxNFTLabs/sdk-go/chain/types"
 	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 	"github.com/FluxNFTLabs/sdk-go/client/common"
@@ -48,7 +50,7 @@ func main() {
 	}
 
 	// init client ctx
-	clientCtx, _, err := chaintypes.NewClientContext(
+	clientCtx, senderAddress, err := chaintypes.NewClientContext(
 		network.ChainId,
 		"user1",
 		kr,
@@ -196,4 +198,22 @@ func main() {
 		}
 	}
 	fmt.Println("program pubkey:", programPubkey.String())
+
+	// prepare tx msg
+	msg1 := &astromeshtypes.MsgAstroTransfer{
+		Sender:   senderAddress.String(),
+		Receiver: senderAddress.String(),
+		SrcPlane: astromeshtypes.Plane_COSMOS,
+		DstPlane: astromeshtypes.Plane_SVM,
+		Coin: sdk.Coin{
+			Denom:  "lux",
+			Amount: math.NewIntFromUint64(1000000000000000000), // 1^18
+		},
+	}
+	txResp, err := chainClient.SyncBroadcastMsg(msg1)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("resp:", txResp.TxResponse.TxHash)
+	fmt.Println("gas used/want:", txResp.TxResponse.GasUsed, "/", txResp.TxResponse.GasWanted)
 }

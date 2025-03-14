@@ -2,22 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gagliardetto/solana-go"
-
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	astromeshtypes "github.com/FluxNFTLabs/sdk-go/chain/modules/astromesh/types"
 	chaintypes "github.com/FluxNFTLabs/sdk-go/chain/types"
-	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 	"github.com/FluxNFTLabs/sdk-go/client/common"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 )
 
 func main() {
@@ -26,7 +25,7 @@ func main() {
 		"fluxd",
 		"file",
 		os.Getenv("HOME")+"/.fluxd",
-		strings.NewReader("12345678"),
+		strings.NewReader("12345678\n"),
 		chainclient.GetCryptoCodec(),
 	)
 	if err != nil {
@@ -56,52 +55,52 @@ func main() {
 		common.OptionGasPrices("500000000lux"),
 	)
 	if err != nil {
-		fmt.Println(err)
-	}
-
-	// prepare tx msg
-	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("sender address:", senderAddress.String())
 
 	astromeshClient := astromeshtypes.NewQueryClient(cc)
-	clientCtx = clientCtx.WithGRPCClient(cc)
-
-	// prepare tx msg
-	msg1 := &astromeshtypes.MsgAstroTransfer{
-		Sender:   senderAddress.String(),
-		Receiver: senderAddress.String(),
-		SrcPlane: astromeshtypes.Plane_COSMOS,
-		DstPlane: astromeshtypes.Plane_SVM,
-		Coin: sdk.Coin{
-			Denom:  "lux",
-			Amount: math.NewIntFromUint64(1000000000000000000), // 1^18
-		},
-	}
-	txResp, err := chainClient.SyncBroadcastMsg(msg1)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("resp:", txResp.TxResponse.TxHash)
-	fmt.Println("gas used/want:", txResp.TxResponse.GasUsed, "/", txResp.TxResponse.GasWanted)
 
 	denomLink, err := astromeshClient.DenomLink(context.Background(), &astromeshtypes.QueryDenomLinkRequest{
 		SrcPlane: astromeshtypes.Plane_COSMOS,
-		DstPlane: astromeshtypes.Plane_SVM,
+		DstPlane: astromeshtypes.Plane_EVM,
 		SrcAddr:  "lux",
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	luxDenomBz, _ := hex.DecodeString(denomLink.DstAddr)
-	luxDenom := solana.PublicKeyFromBytes(luxDenomBz)
-
 	balanceResp, err := astromeshClient.Balance(context.Background(), &astromeshtypes.BalanceRequest{
-		Plane:   astromeshtypes.Plane_SVM.String(),
-		Denom:   luxDenom.String(),
+		Plane:   astromeshtypes.Plane_EVM.String(),
+		Denom:   denomLink.DstAddr,
+		Address: senderAddress.String(),
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("balance before transfer:", balanceResp.Amount)
+
+	// transfer from cosmoshub to evm
+	msg2 := &astromeshtypes.MsgAstroTransfer{
+		Sender:   senderAddress.String(),
+		Receiver: senderAddress.String(),
+		SrcPlane: astromeshtypes.Plane_COSMOS,
+		DstPlane: astromeshtypes.Plane_EVM,
+		Coin: sdk.Coin{
+			Denom:  "lux",
+			Amount: math.NewIntFromUint64(1000000000000000000), // 1^18
+		},
+	}
+	txResp, err := chainClient.SyncBroadcastMsg(msg2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("resp:", txResp.TxResponse.TxHash)
+	fmt.Println("gas used/want:", txResp.TxResponse.GasUsed, "/", txResp.TxResponse.GasWanted)
+
+	balanceResp, err = astromeshClient.Balance(context.Background(), &astromeshtypes.BalanceRequest{
+		Plane:   astromeshtypes.Plane_EVM.String(),
+		Denom:   denomLink.DstAddr,
 		Address: senderAddress.String(),
 	})
 	if err != nil {

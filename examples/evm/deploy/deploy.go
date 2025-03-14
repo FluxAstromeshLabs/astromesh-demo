@@ -7,17 +7,18 @@ import (
 	"os"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
+	astromeshtypes "github.com/FluxNFTLabs/sdk-go/chain/modules/astromesh/types"
 	evmtypes "github.com/FluxNFTLabs/sdk-go/chain/modules/evm/types"
 	chaintypes "github.com/FluxNFTLabs/sdk-go/chain/types"
+	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 	"github.com/FluxNFTLabs/sdk-go/client/common"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	chainclient "github.com/FluxNFTLabs/sdk-go/client/chain"
 )
 
 func main() {
@@ -118,4 +119,22 @@ func main() {
 	}
 	fmt.Println("contract owner:", senderAddress.String())
 	fmt.Println("contract address:", hex.EncodeToString(dcr.ContractAddress))
+
+	// prepare transfer msg
+	msg2 := &astromeshtypes.MsgAstroTransfer{
+		Sender:   senderAddress.String(),
+		Receiver: senderAddress.String(),
+		SrcPlane: astromeshtypes.Plane_COSMOS,
+		DstPlane: astromeshtypes.Plane_EVM,
+		Coin: sdk.Coin{
+			Denom:  "lux",
+			Amount: math.NewIntFromUint64(1000000000000000000), // 1^18
+		},
+	}
+	txResp, err = chainClient.SyncBroadcastMsg(msg2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("astro transfer tx hash:", txResp.TxResponse.TxHash)
+	fmt.Println("gas used/want:", txResp.TxResponse.GasUsed, "/", txResp.TxResponse.GasWanted)
 }
