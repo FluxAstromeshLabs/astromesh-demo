@@ -57,6 +57,12 @@ Query contract for counter value
 yes 12345678 | go run examples/evm/query/query.go
 ```
 
+Astro Transfer for transfer token from COSMOS to EVM (need to run deploy before transfer)
+
+```
+yes 12345678 | go run examples/evm/astro_transfer/example.go
+```
+
 ### SVM
 
 Deploy program
@@ -75,6 +81,12 @@ Query program for counter value, as SVM only has accounts, then query the counte
 
 ```
 yes 12345678 | go run examples/svm/query/query.go
+```
+
+Astro Transfer for transfer token from COSMOS to SVM (need to run deploy before transfer)
+
+```
+yes 12345678 | go run examples/svm/astro_transfer/example.go
 ```
 
 ## How to compile contract/programs
