@@ -88,7 +88,7 @@ yes 12345678 | go run examples/svm/astro_transfer/example.go
 
 ### Cross VM communication: EVM >< SVM
 
-There are two examples contract/program: one for EVM and another from SVM, we can them the `setter` contracts
+There are two examples contract/program: one for EVM and another from SVM, we call them the `setter` contracts
 EVM contract functionalities:
 
 ```
