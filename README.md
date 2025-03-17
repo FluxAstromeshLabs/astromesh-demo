@@ -83,11 +83,68 @@ Query program for counter value, as SVM only has accounts, then query the counte
 yes 12345678 | go run examples/svm/query/query.go
 ```
 
-Astro Transfer for transfer token from COSMOS to SVM (need to run deploy before transfer)
+Astro Transfer for transfer token from COSMOS to SVM 
 
 ```
 yes 12345678 | go run examples/svm/astro_transfer/example.go
 ```
+
+### Cross VM communication: EVM >< SVM
+
+There are two examples contract/program: one for EVM and another from SVM, we can them the `setter` contracts
+EVM contract functionalities:
+
+```
+setData(s)
+    this sets the string value stored in this contract to s
+getData() returns string
+    this returns the current string stored in the contract
+setSvm()
+    if svmProgram.getSvmData() == "svm" {
+        svmProgram.setData("evm")
+    } else {
+        svmProgram.setData("svm")
+    }
+```
+
+Similarly, SVM has same functionalities:
+
+```
+setData(s)
+    this sets the string value stored in this contract to s
+getData() returns string
+    this returns the current string stored in the contract
+setEvm()
+    if evmContract.getEvmData() == "evm" {
+        evmContract.setData("svm")
+    } else {
+        evmContract.setData("evm")
+    }
+```
+
+Calling `setSvm()`, EVM contract queries the string from SVM program and determine which value should be set for SVM
+
+To run examples:
+
+1. Deploy the 2 contracts:
+
+Before deploy, you can tweak something to check deeper if need
+
+```
+yes 12345678 | go run examples/cross_vm/deploy/deploy.go
+```
+
+2. Invoke contracts functions:
+
+```
+# invoke setSvm() from EVM contract
+yes 12345678 | go run examples/cross_vm/execute/evm_to_svm.go
+
+# invoke setEvm() from SVM contract
+yes 12345678 | go run examples/cross_vm/execute/svm_to_evm.go
+```
+
+Each example also does a query after execution to double check if the value correctly set
 
 ## How to compile contract/programs
 

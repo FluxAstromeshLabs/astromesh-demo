@@ -77,7 +77,7 @@ func main() {
 	}
 
 	// copy contract address from deploy example
-	contractAddress, _ := hex.DecodeString("d2c305699bcda7e79ac26d100b820503f7b15d44")
+	contractAddress, _ := hex.DecodeString("ab6b4d064c968eca87f775d2493a222987052bc0")
 
 	// prepare query message, use method get()
 	callData, err := abi.Pack("get")
