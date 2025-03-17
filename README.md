@@ -18,11 +18,8 @@ Option 2: Don't have Docker? Install dependencies and run the binary directly:
 # install vm libs & fluxd binary
 ./install.sh
 
-# v0.3.1
-fluxd version
-
-# start the chain
-fluxd start
+# start fluxd binary
+./start.sh
 ```
 
 ## Run examples
@@ -83,7 +80,7 @@ Query program for counter value, as SVM only has accounts, then query the counte
 yes 12345678 | go run examples/svm/query/query.go
 ```
 
-Astro Transfer for transfer token from COSMOS to SVM 
+Astro Transfer for transfer token from COSMOS to SVM
 
 ```
 yes 12345678 | go run examples/svm/astro_transfer/example.go
