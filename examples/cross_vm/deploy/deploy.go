@@ -62,13 +62,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	//////// DEPLOY EVM PROGRAM ////////
 	fmt.Println("deploy EVM setter program ...")
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	bz, err := os.ReadFile(dir + "examples/cross_vm/evm_setter/build/compData.json")
+	bz, err := os.ReadFile(dir + "/examples/cross_vm/evm_setter/build/compData.json")
 	if err != nil {
 		panic(err)
 	}
@@ -107,6 +107,7 @@ func main() {
 	}
 	fmt.Println("tx hash:", txResp.TxResponse.TxHash)
 	fmt.Println("gas used/want:", txResp.TxResponse.GasUsed, "/", txResp.TxResponse.GasWanted)
+
 	hexResp, err := hex.DecodeString(txResp.TxResponse.Data)
 	if err != nil {
 		panic(err)
@@ -123,7 +124,10 @@ func main() {
 	}
 	fmt.Println("contract owner:", senderAddress.String())
 	fmt.Println("contract address:", hex.EncodeToString(dcr.ContractAddress))
-
+	fmt.Println("EVM setter contract methods:")
+	for id, method := range abi.Methods {
+		fmt.Println("id:", id, "method:", method.Name, hex.EncodeToString(method.ID))
+	}
 	//////// DEPLOY SVM PROGRAM ////////
 	fmt.Println("deploy SVM setter program ...")
 	programBinary, err := os.ReadFile(dir + "/examples/cross_vm/svm_setter/build/svm_setter.so")

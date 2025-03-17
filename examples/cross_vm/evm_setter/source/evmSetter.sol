@@ -28,13 +28,18 @@ contract SvmSetter {
 
     string public evmString;
 
-    function set(string memory _evmString) public {
+    function setData(string memory _evmString) public {
         evmString = _evmString;
     }
 
+    function getData() public view returns (string memory) {
+        return evmString;
+    }
+
     // TODO: Temporarily leave the svm fee payer here, we should let contract be a fee payer
-    function setSvm(string memory svmFeePayer, string memory _svmString) public returns (bytes memory result) {
-        address svmProxy = address(0xaB6B4d064C968eCa87F775d2493a222987052BC0);
+    function doSetSvm(string memory svmFeePayer, string memory _svmString) internal returns (bytes memory result) {
+        address crossVmContract = address(0x75a96B46758F367b9A40Dac909589603BE123057);
+
         MsgTransaction memory transaction;
         transaction.accounts = new string[](4);
         transaction.accounts[0] = "83zfZYacFrGq5eBnnp6EQPxapcpjpxdjAKpLavqtSJ32";
@@ -70,21 +75,21 @@ contract SvmSetter {
             is_writable: false
         });
         bytes memory discriminator = hex"df725b88c54e9999";
-        bytes4 stringLen = this.getStringLengthLE(_svmString);
+        bytes4 stringLen = getStringLengthLE(_svmString);
         instruction.data = bytes.concat(discriminator, stringLen, bytes(_svmString));
         transaction.instructions = new Instruction[](1);
         transaction.instructions[0] = instruction;
 
-        (bool ok, bytes memory r) = svmProxy.call(abi.encode(transaction));
+        (bool ok, bytes memory r) = crossVmContract.call(abi.encode(transaction));
         require(ok, "call must succeed");
         return r;
     }
 
-    function conditionalSetSvm(string memory svmFeePayer) public returns (bytes memory result) {
+    function setSvm(string memory svmFeePayer) public returns (bytes memory result) {
         if (keccak256(bytes(getSvm())) == keccak256("svm")) {
-            return setSvm(svmFeePayer, "evm");
+            return doSetSvm(svmFeePayer, "evm");
         } 
-        return setSvm(svmFeePayer, "svm");
+        return doSetSvm(svmFeePayer, "svm");
     }
 
     // substring for `memory` does not natively supported by solidity, use for loop as example now
@@ -97,8 +102,8 @@ contract SvmSetter {
         return string(res);
     }
 
-    function getSvm() public view returns (string memory) {
-        address svmProxy = address(0xaB6B4d064C968eCa87F775d2493a222987052BC0);
+    function getSvm() internal view returns (string memory) {
+        address crossVmContract = address(0x75a96B46758F367b9A40Dac909589603BE123057);
         MsgTransaction memory transaction;
         transaction.accounts = new string[](2);
         transaction.accounts[0] = "83zfZYacFrGq5eBnnp6EQPxapcpjpxdjAKpLavqtSJ32";
@@ -119,18 +124,18 @@ contract SvmSetter {
         instruction.data = discriminator;
         transaction.instructions = new Instruction[](1);
         transaction.instructions[0] = instruction;
-        (bool ok, bytes memory r) = svmProxy.staticcall(abi.encode(transaction));
+        (bool ok, bytes memory r) = crossVmContract.staticcall(abi.encode(transaction));
         require(ok, "call must succeed");
-
+        
         return parseSvmResponse(r);
     }
 
-    function getStringLengthLE(string memory str) public pure returns (bytes4) {
+    function getStringLengthLE(string memory str) internal pure returns (bytes4) {
         uint256 len = bytes(str).length;
         return toLittleEndian(len);
     }
 
-    function toLittleEndian(uint256 value) public pure returns (bytes4 result) {
+    function toLittleEndian(uint256 value) internal pure returns (bytes4 result) {
         // Extract last 4 bytes
         bytes32 last4 = bytes32(value);
         // Reverse the bytes
