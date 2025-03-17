@@ -1,0 +1,25 @@
+[package]
+name = "setter"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "setter"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+
+[dependencies]
+anchor-lang = { version = "0.31.0", features = ["init-if-needed"] }
+ethabi = "18.0.0"
+hex = "0.4.3"
+solana-program = "2.2.1"
+
